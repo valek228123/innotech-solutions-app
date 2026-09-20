@@ -1,0 +1,11 @@
+[project]
+name = "innowisesolutionsapp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1.1",
+    "djoser>=2.3.4",
+    "psycopg>=3.3.6",
+]
