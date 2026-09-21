@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Activation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            font-size: 18px;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .success-icon {
+            font-size: 60px;
+            margin: 20px 0;
+        }
+
+        .success-text {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .error-text {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading">
+            <div class="spinner"></div>
+            <p class="message">Activating your account...</p>
+        </div>
+
+        <div id="success" style="display: none;">
+            <div class="success-icon">✅</div>
+            <p class="success-text">You have been successfully authenticated!</p>
+        </div>
+
+        <div id="error" style="display: none;">
+            <div class="success-icon">❌</div>
+            <p class="error-text" id="errorMessage">Activation failed</p>
+        </div>
+    </div>
+
+    <script>
+        async function activateEmail() {
+            try {
+                const uid = "{{ uid }}";
+                const token = "{{ token }}";
+
+                if (!uid || !token) {
+                    showError('Invalid activation link');
+                    return;
+                }
+
+                const response = await fetch('http://localhost:8000/auth/users/activation/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        uid: uid,
+                        token: token
+                    })
+                });
+
+                if (response.status === 204 || response.ok) {
+                    showSuccess();
+                } else {
+                    const data = await response.json();
+                    showError(data.detail || 'Activation failed');
+                }
+
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+        window.addEventListener('load', activateEmail);
+    </script>
+</body>
+</html>

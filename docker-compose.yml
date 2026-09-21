@@ -1,0 +1,55 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: innowise_db
+
+    environment:
+      POSTGRES_DB: innowise_solutions_bd
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U django -d innowise_solutions_bd"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    container_name: innowise_web
+
+    command: >
+      sh -c "
+      uv run python manage.py migrate &&
+      uv run python manage.py collectstatic --noinput &&
+      uv run gunicorn config.wsgi:application
+      --bind 0.0.0.0:8000
+      "
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      DEBUG: "1"
+      DB_NAME: innowise_solutions_bd
+      DB_USER: django
+      DB_PASSWORD: django_password
+      DB_HOST: db
+      DB_PORT: "5432"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
